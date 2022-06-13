@@ -332,7 +332,7 @@ def show_solution3(x,z,p,w,instance,chemical='all'):
 
 ### sample instance for third notebook  
 def get_instance3():
-    return rnd_instance3(C=4,T=11,k=6,h=25,seed=3456,how_many=2)
+    return rnd_instance3(C=4,T=11,k=5,S=2,h=13,seed=42,how_many=4)
 
 
 
