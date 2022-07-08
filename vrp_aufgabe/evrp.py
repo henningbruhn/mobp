@@ -144,7 +144,6 @@ def plot_inst(instance,ax):
             continue
         ax.scatter([instance.nodes[station][0]],[instance.nodes[station][1]],color='b',marker='^',s=100)
 
-
     vals=np.array(list(instance.nodes.values()))
     xmax,xmin=max(vals[:,0]),min(vals[:,0])
     ymax,ymin=max(vals[:,1]),min(vals[:,1])
@@ -296,8 +295,8 @@ def check_for_range(tour,instance):
     charge_lvls=compute_charge_lvls(tour,instance)
     if min(flatten(charge_lvls))<0:
         print("Reichweite überschritten!")
-        print("Ladungsstände: ")
-        print(charge_lvls)
+        #print("Ladungsstände: ")
+        #print(charge_lvls)
         return False
     return True
 
