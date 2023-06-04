@@ -140,7 +140,7 @@ class instance2:
         result+="k Anzahl der Lastwagen: ...............{}\n".format(self.k)
         result+="r Fahrtzeit der Lastwagen: ............{}\n".format(self.r)
         dangerous_pairs=", ".join([chems[pair[0]]+" & "+chems[pair[1]] for pair in self.I])
-        result+="I gefährliche Rohstoffpaare: ..........{}\n  --> {}".format(self.I,dangerous_pairs)
+        result+="I gefährliche Rohstoffpaare: ..........{}\n  --> {}\n".format(self.I,dangerous_pairs)
         return result
     
     def __str__(self):
@@ -241,7 +241,7 @@ class instance3:
         result+="k Anzahl der Lastwagen: ...............{}\n".format(self.k)
         result+="r Fahrtzeit der Lastwagen: ............{}\n".format(self.r)
         dangerous_pairs=", ".join([chems[pair[0]]+" & "+chems[pair[1]] for pair in self.I])
-        result+="I gefährliche Rohstoffpaare: ..........{}\n  --> {}".format(self.I,dangerous_pairs)
+        result+="I gefährliche Rohstoffpaare: ..........{}\n  --> {}\n".format(self.I,dangerous_pairs)
         result+="S Anzahl Zwischenlager: ...............{}\n".format(self.S)
         result+="b Kapazitäten Zwischenlager: ..........{}\n".format(self.b)
         result+="f Strafkosten späte Bereitstellung: ...{}\n".format(self.f)
