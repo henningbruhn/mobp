@@ -75,6 +75,10 @@ def show_solution1(x,z,p,instance,chemical='all'):
     if chemical=='all':
         chemicals=range(instance.C)
         chemical_string="gesamt"
+    elif chemical in chems: 
+        chemical_string=chemical
+        chemical=chems.index(chemical)
+        chemicals=[chemical]
     else:
         chemicals=[chemical]
         chemical_string=chems[chemical]
@@ -135,7 +139,8 @@ class instance2:
         result+="d Gesamtbedarf über alle Zeitperioden: {}\n".format(np.array(self.d).sum())
         result+="k Anzahl der Lastwagen: ...............{}\n".format(self.k)
         result+="r Fahrtzeit der Lastwagen: ............{}\n".format(self.r)
-        result+="I gefährliche Rohstoffpaare: ..........{}\n".format(self.I)
+        dangerous_pairs=", ".join([chems[pair[0]]+" & "+chems[pair[1]] for pair in self.I])
+        result+="I gefährliche Rohstoffpaare: ..........{}\n  --> {}".format(self.I,dangerous_pairs)
         return result
     
     def __str__(self):
@@ -169,6 +174,10 @@ def show_solution2(x,z,p,instance,chemical='all'):
     if chemical=='all':
         chemicals=range(instance.C)
         chemical_string="gesamt"
+    elif chemical in chems: 
+        chemical_string=chemical
+        chemical=chems.index(chemical)
+        chemicals=[chemical]
     else:
         chemicals=[chemical]
         chemical_string=chems[chemical]
@@ -231,7 +240,8 @@ class instance3:
         result+="d Gesamtbedarf über alle Zeitperioden: {}\n".format(np.array(self.d).sum())
         result+="k Anzahl der Lastwagen: ...............{}\n".format(self.k)
         result+="r Fahrtzeit der Lastwagen: ............{}\n".format(self.r)
-        result+="I gefährliche Rohstoffpaare: ..........{}\n".format(self.I)
+        dangerous_pairs=", ".join([chems[pair[0]]+" & "+chems[pair[1]] for pair in self.I])
+        result+="I gefährliche Rohstoffpaare: ..........{}\n  --> {}".format(self.I,dangerous_pairs)
         result+="S Anzahl Zwischenlager: ...............{}\n".format(self.S)
         result+="b Kapazitäten Zwischenlager: ..........{}\n".format(self.b)
         result+="f Strafkosten späte Bereitstellung: ...{}\n".format(self.f)
@@ -269,6 +279,10 @@ def show_solution3(x,z,p,w,instance,chemical='all'):
     if chemical=='all':
         chemicals=range(instance.C)
         chemical_string="gesamt"
+    elif chemical in chems: 
+        chemical_string=chemical
+        chemical=chems.index(chemical)
+        chemicals=[chemical]
     else:
         chemicals=[chemical]
         chemical_string=chems[chemical]
