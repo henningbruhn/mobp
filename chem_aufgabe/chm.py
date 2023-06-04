@@ -352,19 +352,17 @@ def get_instance3():
 
 ######################  notebook 4 ################################## 
 
-
-
     
 # Sample Instances notebook 4
 def get_instances4():
-    n = 10
-    seed = 0
+    n = 5
+    seed = 42
     random.seed(seed)
     np.random.seed(seed=seed)
     inner_seeds = [random.randrange(100000) for i in range(n)]
-    instances = [rnd_instance3(C=4,T=11,k=6,h=15,f=0.1,seed=s,how_many=2) for s in inner_seeds ]
+    instances = [rnd_instance3(C=4,T=11,k=5,h=12,f=100,seed=s,how_many=3) for s in inner_seeds ]
     # Append extra b
     for inst in instances:
         inst.b.append(50)
     return instances
-    
+        
