@@ -86,7 +86,7 @@ def show_solution1(x,z,p,instance,chemical='all'):
     storage=[sum([p[c][t].x for c in chemicals]) for t in range(instance.T)]
     deliveries=[sum([x[c][t].x for c in chemicals]) for t in range(instance.T)]
     ax.bar(range(instance.T),demand,color='b',width=0.2,align='edge',alpha=0.8,label="Bedarf")
-    ax.bar(range(instance.T),deliveries,color='g',width=-0.2,align='edge',alpha=0.8,label="Lieferungen")
+    ax.bar(range(instance.T),deliveries,color='g',width=-0.2,align='edge',alpha=0.6,label="Lieferungen")
     ax.step(range(instance.T),storage,'k',linewidth=4,alpha=0.8,label="Lagerstand",where='post')
     ax.set_ylabel("Menge")
     ax.set_title("Bedarf / Lagerstand / Lieferungen: "+chemical_string)
@@ -103,7 +103,7 @@ def show_solution1(x,z,p,instance,chemical='all'):
     if chemical!='all':
         colours=[colour_pick(x[chemical][t].x) for t in range(instance.T) if z[t].x==1]
     for ride,colour in zip(truck_rides,colours):
-        ax.plot(ride,[1]*len(ride),colour,linewidth=20)
+        ax.plot(ride,[1]*len(ride),colour,linewidth=20,alpha=0.6)
     ax.set_xlabel("Zeit")
     ax.set_title("Lastwagenfahrten")
     ax.spines['right'].set_visible(False)
@@ -185,7 +185,7 @@ def show_solution2(x,z,p,instance,chemical='all'):
     storage=[sum([p[c][t].x for c in chemicals]) for t in range(instance.T)]
     deliveries=[sum([x[c][t][v].x for c in chemicals for v in range(instance.k)]) for t in range(instance.T)]
     ax.bar(range(instance.T),demand,color='b',width=0.2,align='edge',alpha=0.8,label="Bedarf")
-    ax.bar(range(instance.T),deliveries,color='g',width=-0.2,align='edge',alpha=0.8,label="Lieferungen")
+    ax.bar(range(instance.T),deliveries,color='g',width=-0.2,align='edge',alpha=0.6,label="Lieferungen")
     ax.step(range(instance.T),storage,'k',linewidth=4,alpha=0.8,label="Lagerstand",where='post')
     ax.set_ylabel("Menge")
     ax.set_title("Bedarf / Lagerstand / Lieferungen: "+chemical_string)
@@ -203,7 +203,7 @@ def show_solution2(x,z,p,instance,chemical='all'):
         if chemical!='all':
             colours=[colour_pick(x[chemical][t][truck].x) for t in range(instance.T) if z[t][truck].x==1]
         for ride,colour in zip(truck_rides,colours):
-            ax.plot(ride,[truck+1]*len(ride),colour,linewidth=10)
+            ax.plot(ride,[truck+1]*len(ride),colour,linewidth=10,alpha=0.6)
     ax.set_xlabel("Zeit")
     ax.set_ylabel("Lastwagen")
     ax.set_title("Lastwagenfahrten")
@@ -291,7 +291,7 @@ def show_solution3(x,z,p,w,instance,chemical='all'):
     deliveries=[sum([x[c][t][v].x for c in chemicals for v in range(instance.k)]) for t in range(instance.T)]
     tardy=[sum([w[c][t].x for c in chemicals]) for t in range(instance.T)]
     ax.bar(range(instance.T),demand,color='b',width=0.2,align='edge',alpha=0.8,label="Bedarf")
-    ax.bar(range(instance.T),deliveries,color='g',width=-0.2,align='edge',alpha=0.8,label="Lieferungen")
+    ax.bar(range(instance.T),deliveries,color='g',width=-0.2,align='edge',alpha=0.6,label="Lieferungen")
     ax.step(range(instance.T),storage,'k',linewidth=4,alpha=0.8,label="Lagerstand",where='post')
     ax.step(range(instance.T),tardy,'r--',linewidth=4,alpha=0.8,label="verspätet",where='post')
     ax.set_ylabel("Menge")
@@ -310,7 +310,7 @@ def show_solution3(x,z,p,w,instance,chemical='all'):
         if chemical!='all':
             colours=[colour_pick(x[chemical][t][truck].x) for t in range(instance.T) if z[t][truck].x==1]
         for ride,colour in zip(truck_rides,colours):
-            ax.plot(ride,[truck+1]*len(ride),colour,linewidth=10)
+            ax.plot(ride,[truck+1]*len(ride),colour,linewidth=10,alpha=0.6)
     ax.set_xlabel("Zeit")
     ax.set_ylabel("Lastwagen")
     ax.set_title("Lastwagenfahrten")
