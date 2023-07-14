@@ -4,23 +4,61 @@ import matplotlib.pyplot as plt
 ### könnte auch weggelassen werden
 plt.style.use('fivethirtyeight')
 import math
+import pandas as pd
 
 ############################ read in instances ###############################
 
 class Instance:
-    def __init__(self,attributes,nodes,customers,stations,demands,depot):
+    def __init__(self,name,attributes,nodes,customers,stations,demands,depot):
+        self.name=name
         self.depot=depot
         self.nodes=nodes
         self.demands=demands
         self.customers=customers
         self.stations=stations
         self.attributes=attributes
+        self.set_attributes()
+
+    def set_attributes(self):
+        self.vehicles=self.attributes["VEHICLES"]
+        self.num_customers=len(self.customers)
+        self.num_stations=len(self.stations)
+        self.capacity=self.attributes['CAPACITY']
+        self.energy_capacity=self.attributes['ENERGY_CAPACITY']
+        self.energy_consumption=self.attributes['ENERGY_CONSUMPTION']
+        self.optimum=self.attributes['OPTIMAL_VALUE']
 
     def dist(self,p,q):
         # dist always Euclidean
         px,py=self.nodes[p]
         qx,qy=self.nodes[q]
         return math.sqrt((px-qx)**2+(py-qy)**2)
+
+    def truncate_to(self,field,length):
+        length=max(length,10)
+        result=str(field)
+        if len(result)<=length:
+            return result
+        return result[:length-5]+",..."+result[-1]
+
+    def __repr__(self):
+        repr="instance\n"
+        repr+=" .name=              {}\n".format(self.name)
+        repr+=" .num_customers=     {}\n".format(self.num_customers)
+        repr+=" .num_stations=      {}\n".format(self.num_stations)
+        repr+=" .capacity=          {}\n".format(self.capacity)
+        repr+=" .energy_capacity=   {}\n".format(self.energy_capacity)
+        repr+=" .energy_consumption={}\n".format(self.energy_consumption)
+        repr+=" .depot=             {}\n".format(self.depot)
+        repr+=" .customers=         {}\n".format(self.truncate_to(self.customers,30))
+        repr+=" .demands=           {}\n".format(self.truncate_to(self.demands,30))
+        repr+=" .stations=          {}\n".format(self.truncate_to(self.stations,30))
+        repr+=" .nodes=             {}\n".format(self.truncate_to(self.nodes,30))
+        repr+=" .optimum=           {}\n".format(self.optimum)
+        return repr
+        
+
+        
 
 class Instance_Reader:
     def __init__(self,filename):
@@ -96,20 +134,19 @@ class Instance_Reader:
     def setup_instance(self):
         if not self.depot in self.stations:
             self.stations.append(self.depot) # depot counts as charging station
-        self.instance=Instance(self.attributes,self.nodes,self.customers,self.stations,self.demands,self.depot)
+        base_filename=os.path.split(self.filename)[1]
+        self.instance=Instance(base_filename[:-5],self.attributes,self.nodes,self.customers,self.stations,self.demands,self.depot)
    
 import os
-        
+
 def read_in_all_instances(path):
     instances={}
-    for root, dirs, files in os.walk(path):
-        for filename in files:
-            filepath=os.path.join(root,filename)
-            if filename.endswith(".evrp"):
-                inst=Instance_Reader(filepath).instance
-                instances[filename[:-5]]=inst
+    for filename in os.listdir(path):
+        filepath=os.path.join(path,filename)
+        if filename.endswith(".evrp"):
+            inst=Instance_Reader(filepath).instance
+            instances[filename[:-5]]=inst
     return instances
-
 
 ################ plot #####################################################
 
@@ -161,9 +198,11 @@ def plot_inst(instance,ax):
     ax.legend(loc="upper left")
     
 def show_attributes(instance,ax):
-    index=['VEHICLES','OPTIMAL_VALUE','DIMENSION','STATIONS','CAPACITY','ENERGY_CAPACITY','ENERGY_CONSUMPTION']
+    index=['DIMENSION','VEHICLES','STATIONS','CAPACITY','ENERGY_CAPACITY','ENERGY_CONSUMPTION','OPTIMAL_VALUE']
     df=pd.DataFrame([[round(instance.attributes[attr],1)] for attr in index if attr in instance.attributes.keys()],index=index,columns=['Instanz'])
-    font_size=14
+    df=df.rename(index={'DIMENSION':'Kunden','VEHICLES':'Fahrzeuge','OPTIMAL_VALUE':'Optimum', 'STATIONS':'Ladestationen', \
+        'CAPACITY':'Kapazität','ENERGY_CAPACITY':'Batteriekapazität','ENERGY_CONSUMPTION':'Energieverbrauch/km'})
+    font_size=12
     ax.axis('off')
     mpl_table = ax.table(cellText = df.values, rowLabels = df.index, loc='center right',colLabels=df.columns,colWidths=[0.3])
     mpl_table.auto_set_font_size(False)
@@ -173,7 +212,7 @@ def show(instance,tour=[None],num_cols=3):
     num_rows=(len(tour)+1+num_cols-1)//num_cols
     fig=plt.figure(figsize=(20,20/num_cols*num_rows))
     if tour[0] is not None:
-        if validate(tour,instance):
+        if validate(tour,instance,quiet=False):
             tour_len=tour_length(tour,instance)
             fig.suptitle("Legale Tour der Länge {}".format(round(tour_len,1)), fontsize=16)
         tour=ensure_depot(tour,instance)
@@ -238,14 +277,8 @@ def tour_lengths(tour,instance):
     return lengths
         
 def tour_length(tour,instance):
-    tour=ensure_depot(tour,instance)
-    length=0
-    for vehicle_tour in tour:
-        for i,_ in enumerate(vehicle_tour[1:]):
-            edge_length=instance.dist(vehicle_tour[i],vehicle_tour[i+1])
-            length+=edge_length
-    return length
-import pandas as pd
+    return sum(tour_lengths(tour,instance))
+    
 
 ############# penalties, soft constraint objective ######################### 
 
@@ -275,42 +308,44 @@ def check_for_single_customer(customer,tour):
             return True
     return False
 
-def check_for_customers(tour,instance):
+def check_for_customers(tour,instance,quiet=True):
     for customer in instance.customers:
         if customer==instance.depot:
             continue
         if not check_for_single_customer(customer,tour):
-            print("Kunde {} wird nicht angefahren!".format(customer))
+            if not quiet:
+                print("Kunde {} wird nicht angefahren!".format(customer))
             return False
     return True
         
-def check_for_capacity(tour,instance):
+def check_for_capacity(tour,instance,quiet=True):
     loads=compute_loads(tour,instance)
     if max(loads)>instance.attributes['CAPACITY']:
-        print("Ladung {} übersteigt maximale Ladung von {}!".format(max(loads),instance.attributes['CAPACITY']))
+        if not quiet:
+            print("Ladung {} übersteigt maximale Ladung von {}!".format(max(loads),instance.attributes['CAPACITY']))
         return False
     return True
 
-def check_for_range(tour,instance):
+def check_for_range(tour,instance,quiet=True):
     charge_lvls=compute_charge_lvls(tour,instance)
     if min(flatten(charge_lvls))<0:
-        print("Reichweite überschritten!")
-        #print("Ladungsstände: ")
-        #print(charge_lvls)
+        if not quiet:
+            print("Reichweite überschritten!")
         return False
     return True
 
-def check_for_num_vehicles(tour,instance):
+def check_for_num_vehicles(tour,instance,quiet=True):
     if len(tour)>instance.attributes['VEHICLES']:
-        print("Es werden {} Fahrzeuge eingesetzt, es sind jedoch nur {} Fahrzeuge vorhanden!".format(len(tour),instance.attributes['VEHICLES']))
+        if not quiet:
+            print("Es werden {} Fahrzeuge eingesetzt, es sind jedoch nur {} Fahrzeuge vorhanden!".format(len(tour),instance.attributes['VEHICLES']))
         return False
     return True
     
-def validate(tour,instance):
-    num_v=check_for_num_vehicles(tour,instance)
-    cust=check_for_customers(tour,instance)
-    rng=check_for_range(tour,instance)
-    cap=check_for_capacity(tour,instance)
+def validate(tour,instance,quiet=True):
+    num_v=check_for_num_vehicles(tour,instance,quiet=quiet)
+    cust=check_for_customers(tour,instance,quiet=quiet)
+    rng=check_for_range(tour,instance,quiet=quiet)
+    cap=check_for_capacity(tour,instance,quiet=quiet)
     return num_v and cust and rng and cap 
 
 def count_stations(tour,instance):
@@ -362,8 +397,16 @@ def rnd_tour_vector(instance):
     random.shuffle(tour_vector)
     return tour_vector
 
-def rnd_tour(instance):
-    return tour_vector_to_list(rnd_tour_vector(instance))
+def insert_rnd_stations(tour_vector,num_stations,instance):
+    for _ in range(num_stations):
+        pos=random.randint(1,len(tour_vector))
+        station=random.choice(instance.stations)
+        tour_vector.insert(pos,station)
+
+def rnd_tour(instance,num_stations_insert=0):
+    tour_vector=rnd_tour_vector(instance)
+    insert_rnd_stations(tour_vector,num_stations_insert,instance)
+    return tour_vector_to_list(tour_vector)
 
 
 ############### fix range heuristic ##########################
@@ -472,3 +515,23 @@ def show_analytics(pops_over_gens,instance):
     axs[3].set_ylim(0,1)
     
     plt.show()
+
+######################## infeasible sample tours for instance E-n33-k4 #####################
+
+def sample1():
+    return [[3, 13, 12, 7, 8, 9, 10, 5],
+ [],
+ [32, 2, 14, 25, 24, 21, 22, 37, 23, 20, 19, 16, 15, 31],
+ [4, 6, 33, 11, 18, 26, 27, 28, 17, 29, 30]]
+
+def sample2():
+    return [[5, 9, 7, 6, 20, 22, 21, 23, 24, 25, 17, 34, 18, 4],
+ [31, 32, 2, 33, 13, 3],
+ [8, 10, 11, 19, 26, 34, 28, 29, 30],
+ [38, 12, 14, 16, 27, 15]]
+
+def sample3():
+    return [[30, 29, 17, 34, 28, 27, 18, 16],
+ [14, 20, 19, 22, 23, 25, 24, 21, 37, 26, 11, 5],
+ [4, 6, 7, 8, 10, 9, 33, 31, 36],
+ [3, 13, 12, 2, 15, 32]]
