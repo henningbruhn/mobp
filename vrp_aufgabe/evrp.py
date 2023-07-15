@@ -45,6 +45,7 @@ class Instance:
         repr="instance\n"
         repr+=" .name=              {}\n".format(self.name)
         repr+=" .num_customers=     {}\n".format(self.num_customers)
+        repr+=" .vehicles=          {}\n".format(self.vehicles)
         repr+=" .num_stations=      {}\n".format(self.num_stations)
         repr+=" .capacity=          {}\n".format(self.capacity)
         repr+=" .energy_capacity=   {}\n".format(self.energy_capacity)
