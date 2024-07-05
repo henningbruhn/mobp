@@ -209,9 +209,14 @@ def show_attributes(instance,ax):
     mpl_table.auto_set_font_size(False)
     mpl_table.set_fontsize(font_size)    
     
-def show(instance,tour=[None],num_cols=3):
+def show(show_obj,tour=[None],num_cols=3):
+    try: # perhaps it's a GenAlgo
+        instance=show_obj.instance
+        tour=show_obj.best_animal
+    except AttributeError:
+        instance=show_obj
     num_rows=(len(tour)+1+num_cols-1)//num_cols
-    fig=plt.figure(figsize=(20,20/num_cols*num_rows))
+    fig=plt.figure(figsize=(12,12/num_cols*num_rows))
     if tour[0] is not None:
         if validate(tour,instance,quiet=False):
             tour_len=tour_length(tour,instance)
@@ -360,7 +365,16 @@ def count_stations(tour,instance):
         counts.append(station_count)
     return counts
 
-def vehicle_stats(tour,instance):
+#def vehicle_stats(tour,instance):
+def vehicle_stats(*args):
+    if (len(args)==0) or (len(args)>2):
+        raise TypeError("entweder vehicle_stats(tour,instance) oder vehicle_stats(gen_algo)")
+    try:
+        ga=args[0]
+        tour=ga.best_animal
+        instance=ga.instance
+    except AttributeError:
+        tour,instance=args
     loads=compute_loads(tour,instance)
     charge_lvls=compute_charge_lvls(tour,instance)
     min_charges=[round(min(charges),1) for charges in charge_lvls]
@@ -476,7 +490,17 @@ def compute_scores_over_gens(pops_over_gens,instance):
 def compute_min_scores(scores_over_gens):
     return [min(scores) for scores in scores_over_gens]
 
-def show_analytics(pops_over_gens,instance):
+#def show_analytics(pops_over_gens,instance):
+def show_analytics(*args):
+    if (len(args)==0) or (len(args)>2):
+        raise TypeError("entweder pops_over_gens,instance oder genalgo")
+    try:
+        ga=args[0]
+        pops_over_gens=ga.pop_over_generations
+        instance=ga.instance
+    except AttributeError:
+        pops_over_gens,instance=args
+    
     FSIZE=12
     scores_over_gens=compute_scores_over_gens(pops_over_gens,instance)
     min_scores=compute_min_scores(scores_over_gens)
@@ -486,7 +510,7 @@ def show_analytics(pops_over_gens,instance):
     else:
         ymax=max(min_scores)*1.05
 #    fig,axs=plt.subplots(1,4,figsize=(22,5))
-    fig,axs=plt.subplots(2,2,figsize=(12,12),sharex=True)
+    fig,axs=plt.subplots(2,2,figsize=(8,8),sharex=True)
     axs=axs.flat
     axs[0].plot(range(len(min_scores)),min_scores)
     axs[0].set_title("Min Kosten in Generation",fontsize=FSIZE)
